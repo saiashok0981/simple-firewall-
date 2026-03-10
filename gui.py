@@ -14,6 +14,8 @@ import threading
 import customtkinter as ctk
 import requests
 
+from wireshark_tab import WiresharkTab
+
 # ── Logging ──────────────────────────────────────────────────────────
 logger = logging.getLogger("firewall.gui")
 
@@ -32,8 +34,8 @@ class FirewallGUI(ctk.CTk):
 
         # ── Window settings ──────────────────────────────────────────
         self.title("🔒 Smart Firewall")
-        self.geometry("700x600")
-        self.minsize(520, 480)
+        self.geometry("800x700")
+        self.minsize(700, 500)
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
 
@@ -45,17 +47,28 @@ class FirewallGUI(ctk.CTk):
 
     def _build_ui(self) -> None:
         """Create all widgets."""
+        
+        # ── Tabview Setup ────────────────────────────────────────────
+        self.tabview = ctk.CTkTabview(self)
+        self.tabview.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        self.tab_firewall = self.tabview.add("Firewall")
+        self.tab_pcap = self.tabview.add("Packet Capture")
+        
+        # Initialize the Wireshark tab
+        WiresharkTab(self.tab_pcap)
 
+        # ── Firewall Tab Content ─────────────────────────────────────
         # Title label
         title = ctk.CTkLabel(
-            self,
+            self.tab_firewall,
             text="🔒 Smart Firewall Control Panel",
             font=ctk.CTkFont(size=22, weight="bold"),
         )
-        title.pack(pady=(18, 8))
+        title.pack(pady=(10, 8))
 
         # ── Input frame ──────────────────────────────────────────────
-        input_frame = ctk.CTkFrame(self, fg_color="transparent")
+        input_frame = ctk.CTkFrame(self.tab_firewall, fg_color="transparent")
         input_frame.pack(fill="x", padx=24, pady=(4, 8))
 
         self.domain_entry = ctk.CTkEntry(
@@ -79,7 +92,7 @@ class FirewallGUI(ctk.CTk):
 
         # ── Status label ─────────────────────────────────────────────
         self.status_label = ctk.CTkLabel(
-            self,
+            self.tab_firewall,
             text="",
             font=ctk.CTkFont(size=12),
             text_color="#888888",
@@ -87,7 +100,7 @@ class FirewallGUI(ctk.CTk):
         self.status_label.pack(pady=(0, 4))
 
         # ── Blocked-domains header + Unblock button ──────────────────
-        blocked_header_frame = ctk.CTkFrame(self, fg_color="transparent")
+        blocked_header_frame = ctk.CTkFrame(self.tab_firewall, fg_color="transparent")
         blocked_header_frame.pack(fill="x", padx=24, pady=(4, 0))
 
         blocked_header = ctk.CTkLabel(
@@ -111,14 +124,14 @@ class FirewallGUI(ctk.CTk):
         self.unblock_btn.pack(side="right")
 
         # ── Blocked-domains scrollable list ───────────────────────────
-        self.blocked_scroll = ctk.CTkScrollableFrame(self, height=72)
+        self.blocked_scroll = ctk.CTkScrollableFrame(self.tab_firewall, height=72)
         self.blocked_scroll.pack(fill="x", padx=24, pady=(2, 6))
 
         self._selected_domain: str | None = None
         self._domain_labels: dict[str, ctk.CTkLabel] = {}
 
         # ── DNS Tools toolbar ────────────────────────────────────────
-        toolbar = ctk.CTkFrame(self, fg_color="transparent")
+        toolbar = ctk.CTkFrame(self.tab_firewall, fg_color="transparent")
         toolbar.pack(fill="x", padx=24, pady=(2, 6))
 
         self.verify_btn = ctk.CTkButton(
@@ -168,7 +181,7 @@ class FirewallGUI(ctk.CTk):
 
         # ── Log area ─────────────────────────────────────────────────
         log_header = ctk.CTkLabel(
-            self,
+            self.tab_firewall,
             text="Live Logs",
             font=ctk.CTkFont(size=14, weight="bold"),
             anchor="w",
@@ -176,7 +189,7 @@ class FirewallGUI(ctk.CTk):
         log_header.pack(fill="x", padx=26, pady=(4, 0))
 
         self.log_box = ctk.CTkTextbox(
-            self,
+            self.tab_firewall,
             height=200,
             font=ctk.CTkFont(family="Consolas", size=12),
             state="disabled",
